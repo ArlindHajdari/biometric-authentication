@@ -1,0 +1,23 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+flask-cors = "*"
+scikit-learn = "*"
+joblib = "*"
+numpy = "*"
+redis = "*"
+psycopg2-binary = "*"
+sqlalchemy = "*"
+python-dotenv = "*"
+bcrypt = "*"
+elasticsearch = "==7.17.7"
+CMRESHandler2 = "*"
+
+[requires]
+python_version = "3.11"
+
+[dev-packages]

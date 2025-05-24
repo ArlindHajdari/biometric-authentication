@@ -1,0 +1,10 @@
+import os
+
+class Config:
+    MODEL_PATH = os.path.join("model", "model.pkl")
+    REDIS_HOST = "redis"
+    REDIS_PORT = 6379
+    SMTP_SERVER = "smtp.gmail.com"
+    SMTP_PORT = 465
+    SENDER_EMAIL = "arlind.hajdari@gmail.com"
+    SENDER_PASSWORD = "cdneuermsvnczbum"

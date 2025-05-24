@@ -1,0 +1,53 @@
+# Global
+.DS_Store
+*.pyc
+__pycache__/
+.env
+.env.*
+
+# Python
+*.pyo
+*.pyd
+*.pdb
+*.egg-info/
+.eggs/
+*.egg
+*.log
+
+# Jupyter
+.ipynb_checkpoints
+
+# VSCode
+.vscode/
+
+# Docker
+**/pgdata/
+**/esdata/
+**/redis_data/
+
+# Node/React
+frontend/node_modules/
+frontend/build/
+frontend/.pnp
+frontend/.pnp.js
+frontend/coverage/
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+
+# Python virtualenv
+backend/.venv/
+backend/venv/
+backend/.mypy_cache/
+backend/.pytest_cache/
+backend/.coverage
+backend/htmlcov/
+backend/.tox/
+backend/.cache/
+backend/instance/
+backend/.pipenv/
+backend/Pipfile.lock
+
+# Model artifacts
+/model/
+backend/model/
