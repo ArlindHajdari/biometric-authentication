@@ -1,9 +1,9 @@
 import { useState } from "react";
 import LoginForm from "./components/LoginForm";
 import MFAForm from "./components/MFAForm";
-import KeyboardCapture from "./components/KeyboardCapture";
-import MouseTracker from "./components/MouseTracker";
+import { Container, Paper, Typography, Box } from "@mui/material";
 import { authenticateBehavior } from "./services/api";
+import BehavioralMonitor from "./components/BehavioralMonitor";
 
 const App = () => {
   const [phase, setPhase] = useState("login");
@@ -20,40 +20,57 @@ const App = () => {
     setPhase("behavioral");
   };
 
-  const handlePartialMetrics = (partial) => {
-    setMetrics((prev) => ({ ...prev, ...partial }));
+ const handleReAuthFail = (data) => {
+    setPhase("login");
+    setEmail("");
+    setAuthResult(data);
   };
 
-  const handleBehavioralSubmit = async () => {
-    try {
-      const res = await authenticateBehavior(metrics);
-      setAuthResult(res.data);
-      setPhase("done");
-    } catch {
-      alert("Authentication failed.");
-    }
+  const handleReAuthSuccess = (data) => {
+    setPhase("done");
+    setAuthResult(data);
   };
-
   return (
-    <div style={{ padding: "2rem" }}>
-      <h1>Secure Behavioral Authentication</h1>
-      {phase === "login" && <LoginForm onSuccess={handleLoginSuccess} />}
-      {phase === "otp" && <MFAForm email={email} onValidate={handleOtpSuccess} />}
-      {phase === "behavioral" && (
-        <>
-          <KeyboardCapture onMetrics={handlePartialMetrics} />
-          <MouseTracker onMetrics={handlePartialMetrics} />
-          <button onClick={handleBehavioralSubmit}>Submit Behavioral Data</button>
-        </>
-      )}
-      {phase === "done" && authResult && (
-        <>
-          <h3>Authentication Result</h3>
-          <p>Status: {authResult.authenticated ? "✅ Authorized" : "❌ Denied"}</p>
-          <p>Confidence: {authResult.confidence}</p>
-        </>
-      )}
-    </div>
+    <Container maxWidth="sm">
+      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
+        {phase === "login" && (
+          <LoginForm onSuccess={handleLoginSuccess} />
+        )}
+
+        {phase === "otp" && (
+          <MFAForm email={email} onValidate={handleOtpSuccess} />
+        )}
+
+        {phase === "behavioral" && (
+          <BehavioralMonitor email={email} onReAuthFail={handleReAuthFail} onReAuthSuccess={handleReAuthSuccess} />
+        )}
+
+        {phase === "done" && authResult && (
+          <Box textAlign="center" mt={4}>
+            <Typography variant="h5" gutterBottom>
+              Authentication Result
+            </Typography>
+            <Typography variant="body1">
+              Status: {authResult.authenticated ? "✅ Authorized" : "❌ Denied"}
+            </Typography>
+            <Typography variant="body1">
+              Confidence: {authResult.confidence}
+            </Typography>
+          </Box>
+        )}
+
+        <Box mt={4}>
+          <Typography
+            variant="caption"
+            color="textSecondary"
+            align="center"
+            display="block"
+          >
+            © 2025 BehavioralAuth Inc.
+          </Typography>
+        </Box>
+      </Paper>
+    </Container>
   );
 };
 

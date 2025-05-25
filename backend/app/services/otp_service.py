@@ -30,8 +30,7 @@ def send_otp(email):
             server.login(Config.SENDER_EMAIL, Config.SENDER_PASSWORD)
             server.sendmail(Config.SENDER_EMAIL, email, message.as_string())
 
-        # Store OTP with 5-minute expiration
-        r.setex(f"otp:{email}", 300, otp)
+        r.setex(f"otp:{email}", 120, otp)
     except Exception as e:
         logger.exception("send_otp error", exc_info=e)
         raise

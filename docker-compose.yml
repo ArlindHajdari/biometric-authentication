@@ -23,7 +23,8 @@ services:
       - backend
 
   db:
-    image: postgres:14
+    build:
+      context: ./backend/db
     restart: always
     environment:
       POSTGRES_USER: user
@@ -31,6 +32,10 @@ services:
       POSTGRES_DB: biometrics
     ports:
       - "5432:5432"
+    command: >
+      postgres
+      -c shared_preload_libraries=pg_cron
+      -c cron.database_name=biometrics
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./backend/db/seed.sql:/docker-entrypoint-initdb.d/seed.sql

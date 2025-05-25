@@ -3,6 +3,8 @@ from flask_cors import CORS
 from app.utils.logger import setup_logger
 from datetime import datetime
 import json
+from app.services.model_service import train_and_save_model
+from apscheduler.schedulers.background import BackgroundScheduler
 
 def create_app():
     app = Flask(__name__)
@@ -15,6 +17,9 @@ def create_app():
 
     from app.routes.otp import otp_bp
     app.register_blueprint(otp_bp, url_prefix="/api")
+    
+    from app.routes.mode import mode_bp
+    app.register_blueprint(mode_bp, url_prefix="/api")
     
     # Log every request
     @app.before_request
@@ -65,4 +70,8 @@ def create_app():
         logger.exception(f"Unhandled exception occurred: {str(e)}")
         return {"error": "Internal server error"}, 500
 
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(train_and_save_model, "cron", minute="*/5")  # Every five minutes
+    scheduler.start()
+    
     return app

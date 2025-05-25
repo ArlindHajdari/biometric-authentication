@@ -16,6 +16,7 @@ python-dotenv = "*"
 bcrypt = "*"
 elasticsearch = "==7.17.7"
 CMRESHandler2 = "*"
+apscheduler = "*"
 
 [requires]
 python_version = "3.11"
