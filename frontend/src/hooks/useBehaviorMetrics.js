@@ -11,6 +11,8 @@ const useBehaviorMetrics = () => {
 
   const lastMove = useRef({ x: 0, y: 0, time: 0 });
 
+  const clickTimes = useRef([]);
+
   const trackKey = (e, type) => {
     const now = performance.now();
     const key = e.key;
@@ -51,6 +53,22 @@ const useBehaviorMetrics = () => {
     lastMove.current = { x: e.clientX, y: e.clientY, time: now };
   };
 
+  const trackClick = () => {
+    const now = performance.now();
+    clickTimes.current.push(now);
+
+    // Remove old clicks (last 5 seconds)
+    const cutoff = now - 5000;
+    clickTimes.current = clickTimes.current.filter((t) => t >= cutoff);
+
+    const clicksPerSecond = clickTimes.current.length / 5;
+
+    setMetrics((prev) => ({
+      ...prev,
+      click_frequency: [...prev.click_frequency, clicksPerSecond],
+    }));
+  };
+
   const resetMetrics = () => {
     setMetrics({
       hold_time: [],
@@ -60,7 +78,7 @@ const useBehaviorMetrics = () => {
     });
   };
 
-  return { metrics, trackKey, trackMouse, resetMetrics };
+  return { metrics, trackKey, trackMouse, trackClick, resetMetrics };
 };
 
 export default useBehaviorMetrics;

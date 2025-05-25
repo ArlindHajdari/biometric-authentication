@@ -12,10 +12,10 @@ import axios from "axios";
 // Helper for biometric tracking
 import useBehaviorMetrics from "../hooks/useBehaviorMetrics";
 
-const BehavioralMonitor = ({ email, onReAuthFail, onReAuthSuccess }) => {
+const BehavioralMonitor = ({ email, onProcess }) => {
   const [typingText, setTypingText] = useState("");
   const [status, setStatus] = useState("Authenticated");
-  const { metrics, trackKey, trackMouse, resetMetrics } = useBehaviorMetrics();
+  const { metrics, trackKey, trackMouse, trackClick, resetMetrics } = useBehaviorMetrics();
 
   const inputRef = useRef();
 
@@ -28,15 +28,14 @@ const BehavioralMonitor = ({ email, onReAuthFail, onReAuthSuccess }) => {
           metrics
         });
 
+        onProcess(res.data);
+        resetMetrics();
+
         if (!res.data.authenticated) {
           setStatus("Session Suspicious");
-          onReAuthFail(res.data);
         } else {
           setStatus("Authenticated");
-          onReAuthSuccess(res.data);
         }
-
-        resetMetrics();
       } catch (err) {
         console.error("Re-auth error", err);
         setStatus("Error validating session");
@@ -47,7 +46,7 @@ const BehavioralMonitor = ({ email, onReAuthFail, onReAuthSuccess }) => {
   }, [metrics]);
 
   return (
-    <Stack spacing={3} sx={{ mt: 6, maxWidth: 600, mx: "auto" }} onMouseMove={trackMouse}>
+    <Stack spacing={3} sx={{ mt: 6, maxWidth: 600, mx: "auto" }} onMouseMove={trackMouse} onClick={trackClick}>
       <Typography variant="h4" gutterBottom>
         Welcome back, {email.split("@")[0]}!
       </Typography>

@@ -18,8 +18,10 @@ const MFAForm = ({ email, onValidate }) => {
     setLoading(true);
     setError("");
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/verify_otp`, { email, otp });
-      onValidate();
+      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/verify_otp`, { email, otp });
+      if (res.data.verified) {
+        onValidate();
+      }
     } catch (err) {
       if (err.response) {
             // The request was made and the server responded with a status code

@@ -7,6 +7,8 @@ services:
       - ./backend/.env
     ports:
       - "5001:5001"
+    volumes:
+      - model_data:/app/models
     depends_on:
       - db
       - elasticsearch
@@ -75,3 +77,4 @@ volumes:
   pgdata:
   esdata:
   redis_data:
+  model_data:

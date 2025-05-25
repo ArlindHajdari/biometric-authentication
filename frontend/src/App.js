@@ -2,13 +2,11 @@ import { useState } from "react";
 import LoginForm from "./components/LoginForm";
 import MFAForm from "./components/MFAForm";
 import { Container, Paper, Typography, Box } from "@mui/material";
-import { authenticateBehavior } from "./services/api";
 import BehavioralMonitor from "./components/BehavioralMonitor";
 
 const App = () => {
   const [phase, setPhase] = useState("login");
   const [email, setEmail] = useState("");
-  const [metrics, setMetrics] = useState({});
   const [authResult, setAuthResult] = useState(null);
 
   const handleLoginSuccess = (userEmail) => {
@@ -20,16 +18,17 @@ const App = () => {
     setPhase("behavioral");
   };
 
- const handleReAuthFail = (data) => {
-    setPhase("login");
-    setEmail("");
+ const handleBehavioralResponse = (data) => {
+    if (data.authenticated) {
+      setPhase("done");
+    } else {
+      setPhase("login");
+      setEmail("");
+    }
+    
     setAuthResult(data);
   };
 
-  const handleReAuthSuccess = (data) => {
-    setPhase("done");
-    setAuthResult(data);
-  };
   return (
     <Container maxWidth="sm">
       <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
@@ -42,7 +41,7 @@ const App = () => {
         )}
 
         {phase === "behavioral" && (
-          <BehavioralMonitor email={email} onReAuthFail={handleReAuthFail} onReAuthSuccess={handleReAuthSuccess} />
+          <BehavioralMonitor email={email} onProcess={handleBehavioralResponse} />
         )}
 
         {phase === "done" && authResult && (

@@ -71,7 +71,7 @@ def create_app():
         return {"error": "Internal server error"}, 500
 
     scheduler = BackgroundScheduler()
-    scheduler.add_job(train_and_save_model, "cron", minute="*/5")  # Every five minutes
+    scheduler.add_job(train_and_save_model, "cron", minute="*/2")  # Every five minutes
     scheduler.start()
     
     return app

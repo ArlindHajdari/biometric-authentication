@@ -53,7 +53,7 @@ def authenticate():
         
         logger.info(f"Re-authenticating {email} with new metrics.")
 
-        model = load_model()
+        model = load_model(email)
         confidence = predict_user(email, metrics, model)
 
         logger.info(f"Confidence dropped for {email}: {confidence}")

@@ -1,7 +1,7 @@
 import os
 
 class Config:
-    MODEL_PATH = os.path.join("model", "model.pkl")
+    MODEL_PATH = "models"
     REDIS_HOST = "redis"
     REDIS_PORT = 6379
     SMTP_SERVER = "smtp.gmail.com"
