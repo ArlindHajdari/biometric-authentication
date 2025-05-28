@@ -65,9 +65,7 @@ services:
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
     command: >
-      /bin/sh -c "kibana >> /var/log/kibana.log 2>&1"
-    volumes:
-      - ./kibana_logs:/var/log
+      /bin/sh -c "kibana >/dev/null 2>&1"
     depends_on:
       - elasticsearch
 

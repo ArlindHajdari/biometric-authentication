@@ -8,31 +8,67 @@ import {
   Container,
   Paper,
   Typography,
-  Box
+  Box,
+  Button
 } from "@mui/material";
 
 const PhaseFlow = () => {
-  const [phase, setPhase] = useState("login");
-  const [email, setEmail] = useState("");
-  const [authResult, setAuthResult] = useState(null);
+  const getInitialPhase = () => {
+    const stored = localStorage.getItem("auth_phase");
+    return stored || "login";
+    };
+  
+  const updatePhase = (nextPhase) => {
+    setPhase(nextPhase);
+    localStorage.setItem("auth_phase", nextPhase);
+  };
+
+  const getInitialEmail = () => {
+    return localStorage.getItem("user_email") || "";
+  };
+
+  const updateEmail = (local_email) => {
+    setEmail(local_email);
+    localStorage.setItem("user_email", local_email);
+  };
+
+  const getInitialAuthResult = () => {
+    return JSON.parse(localStorage.getItem("auth_result")) || null;
+  };
+
+  const updateAuthResult = (auth_result) => {
+    setAuthResult(auth_result);
+    localStorage.setItem("auth_result", JSON.stringify(auth_result));
+  };
+
+  const [phase, setPhase] = useState(getInitialPhase());
+  const [email, setEmail] = useState(getInitialEmail());
+  const [authResult, setAuthResult] = useState(getInitialAuthResult());
 
   const handleLoginSuccess = (userEmail) => {
-    setEmail(userEmail);
-    setPhase("otp");
+    updateEmail(userEmail);
+    updatePhase("otp");
   };
 
   const handleOtpSuccess = () => {
-    setPhase("behavioral");
+    updatePhase("behavioral");
   };
 
   const handleBehavioralResponse = (data) => {
     if (data.authenticated) {
-      setPhase("done");
+      updatePhase("done");
     } else {
-      setPhase("login");
-      setEmail("");
+      updatePhase("login");
+      updateEmail("");
     }
-    setAuthResult(data);
+    console.log(data);
+    updateAuthResult(data);
+  };
+
+  const handleLogout = () => {
+    updateEmail("");
+    updateAuthResult(null);
+    updatePhase("login");
   };
 
   return (
@@ -53,6 +89,12 @@ const PhaseFlow = () => {
           <Typography variant="body1">
             Confidence: {authResult.confidence}
           </Typography>
+
+          <Box mt={4}>
+            <Button variant="contained" color="primary" onClick={handleLogout}>
+              Logout
+            </Button>
+          </Box>
         </Box>
       )}
     </>

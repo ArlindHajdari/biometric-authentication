@@ -74,7 +74,7 @@ const LoginForm = ({ onSuccess }) => {
         <Button
           variant="contained"
           type="submit"
-          disabled={loading || !email || !password}
+          disabled={loading || (email.length < 6) || (password.length < 6)}
         >
           {loading ? <CircularProgress size={24} /> : "Login"}
         </Button>
