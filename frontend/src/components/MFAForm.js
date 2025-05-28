@@ -1,49 +1,75 @@
-import { useState } from "react";
-import axios from "axios";
 import {
   Button,
-  TextField,
   Typography,
   Stack,
   CircularProgress,
-  Alert
+  Alert,
+  Box,
+  TextField
 } from "@mui/material";
+import axios from "axios";
+import { useEffect, useState, useRef } from "react";
 
 const MFAForm = ({ email, onValidate }) => {
-  const [otp, setOtp] = useState("");
+  const inputRefs = useRef([]);
+  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const handleChange = (e, index) => {
+    const value = e.target.value;
+    if (!/^[0-9]?$/.test(value)) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = value;
+    setOtp(newOtp);
+
+    if (value && index < 5) {
+      inputRefs.current[index + 1].focus();
+    }
+  };
+
+  const handleKeyDown = (e, index) => {
+    if (e.key === "Backspace" && !otp[index] && index > 0) {
+      inputRefs.current[index - 1].focus();
+    }
+  };
+
+  const handlePaste = (e) => {
+    e.preventDefault();
+  };
 
   const handleVerify = async () => {
     setLoading(true);
     setError("");
+    
+    const joinedOtp = otp.join("");
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/verify_otp`, { email, otp });
+      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/verify_otp`, { email, otp: joinedOtp });
       if (res.data.verified) {
         onValidate();
       }
     } catch (err) {
-      if (err.response) {
-            // The request was made and the server responded with a status code
-            // that falls out of the range of 2xx
-          console.log(err.response.data);
-          console.log(err.response.status);
-          console.log(err.response.headers);
-        } else if (err.request) {
-            // The request was made but no response was received
-            // `error.request` is an instance of XMLHttpRequest in the 
-            // browser and an instance of
-            // http.ClientRequest in node.js
-            console.log(err.request);
-        } else {
-            // Something happened in setting up the request that triggered an Error
-            console.log('Error', err.message);
-        }
-        console.log(err.config);
-        setError("Failed to verify OTP.");
+      console.error(err);
     }
+
+    setError("Failed to verify OTP.");
     setLoading(false);
   };
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (otp.every((d) => d !== "")) {
+        handleVerify();
+      }
+    }, 150);
+
+    return () => clearTimeout(timeout);
+  }, [otp]);
+
+  useEffect(() => {
+    inputRefs.current[0]?.focus();
+  }, []);
 
   return (
     <Stack spacing={2} sx={{ mt: 6, maxWidth: 400, mx: "auto" }}>
@@ -51,18 +77,27 @@ const MFAForm = ({ email, onValidate }) => {
         Enter OTP sent to <strong>{email}</strong>
       </Typography>
 
-      <TextField
-        label="One-Time Password"
-        value={otp}
-        onChange={(e) => setOtp(e.target.value)}
-        inputProps={{ maxLength: 6 }}
-        required
-      />
+      <Box display="flex" justifyContent="space-between" gap={1} onPaste={handlePaste}>
+        {otp.map((digit, i) => (
+          <TextField
+            key={i}
+            inputRef={(el) => (inputRefs.current[i] = el)}
+            value={digit}
+            onChange={(e) => handleChange(e, i)}
+            onKeyDown={(e) => handleKeyDown(e, i)}
+            inputProps={{
+              maxLength: 1,
+              style: { textAlign: "center", fontSize: "1.5rem" },
+            }}
+            variant="outlined"
+          />
+        ))}
+      </Box>
 
       <Button
         variant="contained"
         onClick={handleVerify}
-        disabled={loading || otp.length !== 6}
+        disabled={loading || otp.includes("")}
       >
         {loading ? <CircularProgress size={24} /> : "Verify OTP"}
       </Button>

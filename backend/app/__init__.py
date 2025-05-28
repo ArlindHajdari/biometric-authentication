@@ -18,6 +18,9 @@ def create_app():
     from app.routes.otp import otp_bp
     app.register_blueprint(otp_bp, url_prefix="/api")
     
+    from app.routes.ip import ip_bp
+    app.register_blueprint(ip_bp, url_prefix="/api")
+    
     from app.routes.mode import mode_bp
     app.register_blueprint(mode_bp, url_prefix="/api")
     

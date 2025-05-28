@@ -1,10 +1,17 @@
 import { useState } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import LoginForm from "./components/LoginForm";
 import MFAForm from "./components/MFAForm";
-import { Container, Paper, Typography, Box } from "@mui/material";
 import BehavioralMonitor from "./components/BehavioralMonitor";
+import ApproveIPForm from "./components/ApproveIPForm";
+import {
+  Container,
+  Paper,
+  Typography,
+  Box
+} from "@mui/material";
 
-const App = () => {
+const PhaseFlow = () => {
   const [phase, setPhase] = useState("login");
   const [email, setEmail] = useState("");
   const [authResult, setAuthResult] = useState(null);
@@ -18,58 +25,63 @@ const App = () => {
     setPhase("behavioral");
   };
 
- const handleBehavioralResponse = (data) => {
+  const handleBehavioralResponse = (data) => {
     if (data.authenticated) {
       setPhase("done");
     } else {
       setPhase("login");
       setEmail("");
     }
-    
     setAuthResult(data);
   };
 
   return (
-    <Container maxWidth="sm">
-      <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
-        {phase === "login" && (
-          <LoginForm onSuccess={handleLoginSuccess} />
-        )}
-
-        {phase === "otp" && (
-          <MFAForm email={email} onValidate={handleOtpSuccess} />
-        )}
-
-        {phase === "behavioral" && (
-          <BehavioralMonitor email={email} onProcess={handleBehavioralResponse} />
-        )}
-
-        {phase === "done" && authResult && (
-          <Box textAlign="center" mt={4}>
-            <Typography variant="h5" gutterBottom>
-              Authentication Result
-            </Typography>
-            <Typography variant="body1">
-              Status: {authResult.authenticated ? "✅ Authorized" : "❌ Denied"}
-            </Typography>
-            <Typography variant="body1">
-              Confidence: {authResult.confidence}
-            </Typography>
-          </Box>
-        )}
-
-        <Box mt={4}>
-          <Typography
-            variant="caption"
-            color="textSecondary"
-            align="center"
-            display="block"
-          >
-            © 2025 BehavioralAuth Inc.
+    <>
+      {phase === "login" && <LoginForm onSuccess={handleLoginSuccess} />}
+      {phase === "otp" && <MFAForm email={email} onValidate={handleOtpSuccess} />}
+      {phase === "behavioral" && (
+        <BehavioralMonitor email={email} onProcess={handleBehavioralResponse} />
+      )}
+      {phase === "done" && authResult && (
+        <Box textAlign="center" mt={4}>
+          <Typography variant="h5" gutterBottom>
+            Authentication Result
+          </Typography>
+          <Typography variant="body1">
+            Status: {authResult.authenticated ? "✅ Authorized" : "❌ Denied"}
+          </Typography>
+          <Typography variant="body1">
+            Confidence: {authResult.confidence}
           </Typography>
         </Box>
-      </Paper>
-    </Container>
+      )}
+    </>
+  );
+};
+
+const App = () => {
+  return (
+    <Router>
+      <Container maxWidth="sm">
+        <Paper elevation={3} sx={{ p: 4, mt: 8 }}>
+          <Routes>
+            <Route path="/" element={<PhaseFlow />} />
+            <Route path="/approve-ip" element={<ApproveIPForm />} />
+          </Routes>
+
+          <Box mt={4}>
+            <Typography
+              variant="caption"
+              color="textSecondary"
+              align="center"
+              display="block"
+            >
+              © 2025 BehavioralAuth Inc.
+            </Typography>
+          </Box>
+        </Paper>
+      </Container>
+    </Router>
   );
 };
 

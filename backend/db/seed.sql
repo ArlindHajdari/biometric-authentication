@@ -2,7 +2,10 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 CREATE TABLE IF NOT EXISTS users (
     email VARCHAR PRIMARY KEY,
-    password VARCHAR NOT NULL
+    password VARCHAR NOT NULL,
+    mode VARCHAR DEFAULT 'train',
+    successful_logins INTEGER DEFAULT 0,
+    created_at TIMESTAMP DEFAULT now()
 );
 
 INSERT INTO users (email, password)
@@ -23,7 +26,7 @@ CREATE TABLE IF NOT EXISTS training_samples (
 
 CREATE INDEX IF NOT EXISTS idx_training_trained ON training_samples (trained);
 
-CREATE INDEX IF NOt EXISTS idx_training_email ON training_samples (email);
+CREATE INDEX IF NOT EXISTS idx_training_email ON training_samples (email);
 
 --VACUUM ANALYZE training_samples;
 
@@ -36,4 +39,31 @@ SELECT * from cron.schedule(
     DELETE FROM training_samples
     WHERE trained = TRUE;
     $$
+);
+
+SELECT cron.schedule(
+  'switch_train_to_auth_by_logins',
+  '0 0 * * *', 
+  $$
+  UPDATE users
+  SET mode = 'auth'
+  WHERE mode = 'train' AND successful_logins >= 15
+  $$
+);
+
+CREATE TABLE IF NOT EXISTS ip_trust_requests (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email VARCHAR NOT NULL,
+  ip_address VARCHAR NOT NULL,
+  requested_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  expires_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP + INTERVAL '3 days',
+  confirmed BOOLEAN DEFAULT FALSE
+);
+
+CREATE TABLE IF NOT EXISTS user_ips (
+  email VARCHAR NOT NULL,
+  ip_address VARCHAR NOT NULL,
+  successful_logins INT DEFAULT 0,
+  last_seen TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (email, ip_address)
 );

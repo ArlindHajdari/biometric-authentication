@@ -56,6 +56,7 @@ services:
       - "9200:9200"
     volumes:
       - esdata:/usr/share/elasticsearch/data
+      - ./elasticsearch/log4j2.properties:/usr/share/elasticsearch/config/log4j2.properties
 
   kibana:
     image: docker.elastic.co/kibana/kibana:7.17.10
@@ -63,6 +64,10 @@ services:
       - "5601:5601"
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    command: >
+      /bin/sh -c "kibana >> /var/log/kibana.log 2>&1"
+    volumes:
+      - ./kibana_logs:/var/log
     depends_on:
       - elasticsearch
 

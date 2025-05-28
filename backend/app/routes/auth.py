@@ -2,9 +2,10 @@ from flask import Blueprint, request, jsonify
 from app.db import SessionLocal
 from app.models import User
 from app.services.otp_service import send_otp
+from app.services.ip_service import evaluate_ip_trust
 from app.utils.hash_password import verify_password
 from app.utils.logger import setup_logger
-from app.services.model_service import load_model, predict_user, store_metrics_for_training
+from app.services.model_service import load_model, predict_user, store_metrics_for_training, compute_fitness
 from app.config import app_mode
 
 auth_bp = Blueprint('auth', __name__)
@@ -40,28 +41,48 @@ def login():
 
 @auth_bp.route("/authenticate", methods=["POST"])
 def authenticate():
+    db = SessionLocal()
     try:
         data = request.get_json()
         email = data.get("email")
         metrics = data.get("metrics", {})
         
+        user = db.query(User).filter_by(email=email).first()
+        if not user:
+            logger.info(f"[AUTHENTICATE] User not found: {email}")
+            return jsonify({"error": "User not found"}), 404
+        
         store_metrics_for_training(email, metrics)
         
-        if app_mode["mode"] == "train":
+        if user.mode == "train":
+            user.successful_logins += 1
+            db.commit()
             logger.info(f"[TRAIN MODE] Gathering metrics for {email}")
             return jsonify({"authenticated": True, "confidence": 1.0})
         
         logger.info(f"Re-authenticating {email} with new metrics.")
 
-        model = load_model(email)
-        confidence = predict_user(email, metrics, model)
-
-        logger.info(f"Confidence dropped for {email}: {confidence}")
-
+        confidence = predict_user(email, metrics)
+        
+        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
+        logger.info(f"[EVALUATING] Received users IP: {ip}")
+        ip_score = evaluate_ip_trust(email, ip)
+        fitness = compute_fitness(confidence, ip_score)
+        
+        authenticated = bool(fitness >= 0.5)
+        
+        logger.info(f"Fitness details for {email}: Confidence => {confidence}, IP Score => {ip_score}, Fitness => {fitness}")
+        
+        if authenticated:
+            user.successful_logins += 1
+            db.commit()
+            logger.info(f"[AUTHENTICATED]: User {email} successfully authenticated.")
+        
         return jsonify({
-            "authenticated": confidence >= 0.5,
-            "confidence": confidence
-        })
+            "authenticated": authenticated,
+            "confidence": fitness
+        }), 200
     except Exception as e:
+        db.close()
         logger.exception(f"Authentication error: {str(e)}")
         return jsonify({"authenticated": False, "confidence": 0}), 500

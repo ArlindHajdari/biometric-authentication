@@ -29,8 +29,7 @@ const BehavioralMonitor = ({ email, onProcess }) => {
         });
 
         onProcess(res.data);
-        resetMetrics();
-
+        
         if (!res.data.authenticated) {
           setStatus("Session Suspicious");
         } else {
@@ -40,6 +39,7 @@ const BehavioralMonitor = ({ email, onProcess }) => {
         console.error("Re-auth error", err);
         setStatus("Error validating session");
       }
+      resetMetrics();
     }, 10_000);
 
     return () => clearInterval(interval);

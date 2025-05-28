@@ -44,9 +44,13 @@ const LoginForm = ({ onSuccess }) => {
     setLoading(false);
   };
 
+  const handlePaste = (e) => {
+    e.preventDefault();
+  };
+
   return (
     <form onSubmit={handleLogin}>
-      <Stack spacing={2} sx={{ mt: 6, maxWidth: 400, mx: "auto" }}>
+      <Stack spacing={2} sx={{ mt: 6, maxWidth: 400, mx: "auto" }} onPaste={handlePaste}>
         <Typography variant="h5" gutterBottom>
           Login to Your Account
         </Typography>

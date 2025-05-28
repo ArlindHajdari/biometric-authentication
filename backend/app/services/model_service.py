@@ -57,12 +57,15 @@ def load_model(email):
     return joblib.load(model_complete_path)
 
 def flatten_features(sample):
-    """Convert raw metric arrays to flattened numeric features."""
     return [
         np.mean(sample.get("hold_time", []) or [0]),
+        np.std(sample.get("hold_time", []) or [0]),
         np.mean(sample.get("flight_time", []) or [0]),
+        np.std(sample.get("flight_time", []) or [0]),
         np.mean(sample.get("mouse_velocity", []) or [0]),
+        np.std(sample.get("mouse_velocity", []) or [0]),
         np.mean(sample.get("click_frequency", []) or [0]),
+        np.std(sample.get("click_frequency", []) or [0]),
     ]
 
 def build_or_update_model(email, positive_samples, negative_samples):
@@ -92,20 +95,27 @@ def build_or_update_model(email, positive_samples, negative_samples):
     joblib.dump(model, model_complete_path)
     return model
 
-def predict_user(model, data):
-    features = np.array([[float(data["hold_time"]),
-                          float(data["flight_time"]),
-                          float(data["mouse_velocity"]),
-                          float(data["click_frequency"])]])
-    prediction = model.predict(features)[0]
-    confidence = model.predict_proba(features)[0][int(prediction)]
+def predict_user(email, sample):
+    model_path = os.path.join(Config.MODEL_PATH, f"{email.split('@')[0]}.pkl")
     
-    logger.info(f"Prediction: {prediction}, Confidence: {confidence}")
+    if not os.path.exists(model_path):
+        return 0.0
     
-    return {
-        "authenticated": bool(prediction),
-        "confidence": round(confidence, 4)
-    }
+    try:
+        model = joblib.load(model_path)
+        features = flatten_features(sample)
+        X = np.array([features])
+        
+        if hasattr(model, "predict_proba"):
+            confidence = model.predict_proba(X)[0][1]
+        else:
+            confidence = model.decision_function(X)[0]
+            confidence = 1 / (1 + np.exp(-confidence))
+
+        return confidence
+    except Exception as e:
+        logger.info(f"[PREDICT USER]: Error in predict_user for {email}: {e}")
+        return 0.0
 
 def store_metrics_for_training(email, metrics):
     if not email or not metrics:
@@ -126,3 +136,6 @@ def store_metrics_for_training(email, metrics):
 
     logger.info(f"Stored training data for {email}")
     return {"stored": True}
+
+def compute_fitness(biometric_score, ip_score):
+    return float(Config.BIOMETRICS_WEIGHT) * biometric_score + float(Config.IP_WEIGHT) * ip_score

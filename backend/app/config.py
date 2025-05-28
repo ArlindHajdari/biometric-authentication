@@ -1,6 +1,7 @@
 import os
 
 class Config:
+    FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
     MODEL_PATH = "models"
     REDIS_HOST = "redis"
     REDIS_PORT = 6379
@@ -9,5 +10,8 @@ class Config:
     SENDER_EMAIL = os.getenv("SENDER_EMAIL", "arlind.hajdari@gmail.com")
     SENDER_PASSWORD = os.getenv("SENDER_PASSWORD", "123123123")
     MODE = os.getenv("APP_MODE", "auth")
+    AUTO_TRUST_THRESHOLD = int(os.getenv("AUTO_TRUST_THRESHOLD", 3))
+    IP_WEIGHT = os.getenv("IP_WEIGHT", 0.3)
+    BIOMETRICS_WEIGHT = os.getenv("BIOMETRICS_WEIGHT", 0.7)
     
 app_mode = {"mode": Config.MODE }
