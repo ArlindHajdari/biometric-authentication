@@ -86,3 +86,5 @@ def authenticate():
         db.close()
         logger.exception(f"Authentication error: {str(e)}")
         return jsonify({"authenticated": False, "confidence": 0}), 500
+    finally:
+        db.close()

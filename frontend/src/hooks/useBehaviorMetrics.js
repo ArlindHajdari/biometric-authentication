@@ -57,7 +57,6 @@ const useBehaviorMetrics = () => {
     const now = performance.now();
     clickTimes.current.push(now);
 
-    // Remove old clicks (last 5 seconds)
     const cutoff = now - 5000;
     clickTimes.current = clickTimes.current.filter((t) => t >= cutoff);
 
