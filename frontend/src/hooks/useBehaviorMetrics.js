@@ -16,10 +16,10 @@ const useBehaviorMetrics = () => {
   const trackKey = (e, type) => {
     const now = performance.now();
     const key = e.key;
-
+  
     if (type === "down") {
       if (lastKeyDown.current.lastUpTime) {
-        const flight = now - lastKeyDown.current.lastUpTime;
+        const flight = (now - lastKeyDown.current.lastUpTime).toFixed(4);
         setMetrics((prev) => ({
           ...prev,
           flight_time: [...prev.flight_time, flight],
@@ -29,7 +29,7 @@ const useBehaviorMetrics = () => {
     }
 
     if (type === "up" && lastKeyDown.current[key]) {
-      const hold = now - lastKeyDown.current[key];
+      const hold = (now - lastKeyDown.current[key]).toFixed(4);
       lastKeyDown.current.lastUpTime = now;
       setMetrics((prev) => ({
         ...prev,
@@ -44,7 +44,7 @@ const useBehaviorMetrics = () => {
     const dy = e.clientY - lastMove.current.y;
     const dt = now - lastMove.current.time;
     if (dt > 0) {
-      const velocity = Math.sqrt(dx * dx + dy * dy) / dt;
+      const velocity = (Math.sqrt(dx * dx + dy * dy) / dt).toFixed(4);
       setMetrics((prev) => ({
         ...prev,
         mouse_velocity: [...prev.mouse_velocity, velocity],

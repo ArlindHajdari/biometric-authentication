@@ -3,7 +3,11 @@ import {
   Typography,
   TextField,
   Stack,
-  Box
+  Box,
+  Button,
+  Switch,
+  FormControlLabel,
+  Slider
 } from "@mui/material";
 import axios from "axios";
 
@@ -62,6 +66,28 @@ const BehavioralMonitor = ({ email, onProcess }) => {
         onKeyUp={(e) => trackKey(e, "up")}
         fullWidth
       />
+
+      <FormControlLabel
+        control={<Switch />}
+        label="Enable biometric auto-verification"
+      />
+
+      <Box>
+        <Typography gutterBottom>Adjust Sensitivity</Typography>
+        <Slider
+          defaultValue={50}
+          aria-label="Sensitivity"
+        />
+      </Box>
+
+      <Box textAlign="center">
+        <Typography gutterBottom>Click the button a few times:</Typography>
+        <Button
+          variant="contained"
+        >
+          Simulate Action
+        </Button>
+      </Box>
 
       <Box>
         <Typography variant="body2" color="textSecondary">
