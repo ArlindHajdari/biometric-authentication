@@ -67,7 +67,7 @@ def authenticate():
         ip = request.headers.get("X-Forwarded-For", request.remote_addr)
         logger.info(f"[EVALUATING] Received users IP: {ip}")
         ip_score = evaluate_ip_trust(email, ip)
-        fitness = compute_fitness(confidence, ip_score)
+        fitness = round(compute_fitness(confidence, ip_score), 4)
         
         authenticated = bool(fitness >= 0.5)
         

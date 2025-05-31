@@ -14,6 +14,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Stack
 } from "@mui/material";
 
 const PhaseFlow = ({
@@ -25,32 +26,64 @@ const PhaseFlow = ({
   onOTPSuccess,
   onBehavioralResponse
 }) => {
+  const [authenticated, setAuthentication] = useState(true);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const [logoutCountdown, setLogoutCountdown] = useState(3);
+  const countdownRef = useRef(null);
+
+  const handleBehavioralVerification = (data) => {
+    setAuthentication(data.authenticated);
+    if (!authenticated && !showLogoutDialog) {
+      setShowLogoutDialog(true);
+      startLogoutCountdown();
+    }
+  };
+
+  const startLogoutCountdown = () => {
+    setLogoutCountdown(3);
+    countdownRef.current = setInterval(() => {
+      setLogoutCountdown((prev) => {
+        if (prev === 1) {
+          clearInterval(countdownRef.current);
+          setShowLogoutDialog(false);
+          onLogout();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
   return (
     <>
       {phase === "login" && <LoginForm onSuccess={onLoginSuccess} />}
       {phase === "otp" && <MFAForm email={email} onValidate={onOTPSuccess} />}
-      {phase === "behavioral" && (
-        <BehavioralMonitor email={email} onProcess={onBehavioralResponse} />
-      )}
-      {phase === "done" && authResult && (
-        <Box textAlign="center" mt={4}>
-          <Typography variant="h5" gutterBottom>
-            Authentication Result
-          </Typography>
+      {phase === "done" && (
+        <Stack spacing={3}>
+          <Typography variant="h5">Dashboard</Typography>
+
+          <BehavioralMonitor
+            email={email}
+            onProcess={handleBehavioralVerification}
+          />
+
           <Typography variant="body1">
-            Status: {authResult.authenticated ? "✅ Authorized" : "❌ Denied"}
-          </Typography>
-          <Typography variant="body1">
-            Confidence: {authResult.confidence}
+            Welcome back! You are being continuously verified.
           </Typography>
 
-          <Box mt={4}>
-            <Button variant="contained" color="primary" onClick={onLogout}>
-              Logout
-            </Button>
-          </Box>
-        </Box>
+          <Button variant="outlined" onClick={onLogout}>
+            Logout
+          </Button>
+        </Stack>
       )}
+      <Dialog open={showLogoutDialog}>
+        <DialogTitle>Session Security Warning</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Low confidence detected. Logging out in {logoutCountdown} second{logoutCountdown !== 1 ? "s" : ""}.
+          </Typography>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
@@ -94,7 +127,7 @@ const App = () => {
   };
 
   const handleOtpSuccess = () => {
-    updatePhase("behavioral");
+    updatePhase("done");
   };
 
   const handleBehavioralResponse = (data) => {
@@ -116,8 +149,7 @@ const App = () => {
 
   const inactivityLimitMs = parseInt(process.env.REACT_APP_INACTIVITY_LIMIT_MS || "30000", 10);
   const countdownSeconds = parseInt(process.env.REACT_APP_COUNTDOWN_SECONDS || "10", 10);
-  console.log("Inactivity limit:", inactivityLimitMs, "ms");
-  console.log("Countdown seconds:", countdownSeconds);
+  
   const [showInactivityDialog, setShowInactivityDialog] = useState(false);
   const [countdown, setCountdown] = useState(countdownSeconds);
   const countdownRef = useRef(null);
@@ -126,20 +158,16 @@ const App = () => {
   const startCountdown = () => {
     setCountdown(countdownSeconds);
     countdownRef.current = setInterval(() => {
-      console.log("Countdown tick:", countdown);
       setCountdown((prev) => {
         if (prev === 1) {
           clearInterval(countdownRef.current);
-          console.log("Countdown finished, logging out");
           handleLogout();
           return 0;
         }
-        console.log("Countdown decremented:", prev - 1);
         return prev - 1;
       });
     }, 1000);
   };
-
 
   const handleStay = () => {
     clearInterval(countdownRef.current);
@@ -158,41 +186,34 @@ const App = () => {
 
   useEffect(() => {
     if (phase !== "done") return;
-    console.log("Setting up inactivity timer for phase:", phase);
+    
     const resetInactivityTimer = () => {
       clearTimeout(inactivityTimerRef.current);
-      console.log("Resetting inactivity timer");
+      
       inactivityTimerRef.current = setTimeout(() => {
-        console.log("Inactivity limit reached, showing dialog");
-        setShowInactivityDialog(true);
-        console.log("Inactivity dialog shown"); 
+        setShowInactivityDialog(true); 
       }, inactivityLimitMs);
-
-      console.log("Inactivity timer set for", inactivityLimitMs, "ms");
     };
 
     const handleActivity = () => {
       if (!showInactivityDialog) resetInactivityTimer();
-      console.log("User activity detected, resetting inactivity timer");
     };
 
     window.addEventListener("mousemove", handleActivity);
     window.addEventListener("keydown", handleActivity);
     resetInactivityTimer();
-    console.log("Inactivity timer initialized");
+    
     return () => {
       window.removeEventListener("mousemove", handleActivity);
       window.removeEventListener("keydown", handleActivity);
-      console.log("Cleaning up inactivity timer");
+      
       clearTimeout(inactivityTimerRef.current);
       clearInterval(countdownRef.current);
-      console.log("Inactivity timer cleaned up");
     };
   }, [phase, showInactivityDialog]);
 
   useEffect(() => {
     if (showInactivityDialog) {
-      setCountdown(countdownSeconds);
       startCountdown();
     }
   }, [showInactivityDialog]);
@@ -234,7 +255,6 @@ const App = () => {
                 variant="body1"
                 sx={{
                   fontSize: "1.2rem",
-                  fontWeight: "bold",
                   color: countdown <= 5 ? "error.main" : "text.primary",
                   transition: "color 0.3s ease"
                 }}

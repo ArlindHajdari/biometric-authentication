@@ -3,9 +3,7 @@ import {
   Typography,
   TextField,
   Stack,
-  CircularProgress,
-  Box,
-  Alert
+  Box
 } from "@mui/material";
 import axios from "axios";
 
@@ -23,18 +21,19 @@ const BehavioralMonitor = ({ email, onProcess }) => {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/authenticate`, {
+        let res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/authenticate`, {
           email,
           metrics
         });
-
-        onProcess(res.data);
+        console.log("Re-auth response:", res.data);
         
         if (!res.data.authenticated) {
           setStatus("Session Suspicious");
         } else {
           setStatus("Authenticated");
         }
+
+        onProcess(res.data);
       } catch (err) {
         console.error("Re-auth error", err);
         setStatus("Error validating session");
