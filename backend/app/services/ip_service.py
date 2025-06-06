@@ -1,6 +1,5 @@
 from app.models import UserIP, IPTrustRequest
 from app.utils.mailer import send_email
-import uuid
 from datetime import datetime, timedelta
 from app.config import Config
 from app.db import SessionLocal
@@ -48,7 +47,7 @@ def register_or_increment_ip(email, ip):
             existing.successful_logins += 1
             existing.last_seen = datetime.utcnow()
             db.commit()
-            if existing.successful_logins > Config.AUTO_TRUST_THRESHOLD:
+            if existing.successful_logins >= Config.AUTO_TRUST_THRESHOLD:
                 ip_trust_request = db.query(IPTrustRequest).filter_by(
                     email=email, ip_address=ip
                 ).first()

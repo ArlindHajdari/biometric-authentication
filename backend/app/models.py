@@ -22,16 +22,22 @@ class TrainingSample(Base):
     flight_time = Column(JSON)
     mouse_velocity = Column(JSON)
     click_frequency = Column(JSON)
+    dwell_time = Column(JSON)
+    scroll_distance = Column(JSON)
+    keypress_rate = Column(JSON)
+    cursor_variation = Column(JSON)
     trained = Column(String, default="False")
     
     def to_dict(self):
         return {
-            "email": self.email,
             "hold_time": self.hold_time,
             "flight_time": self.flight_time,
             "mouse_velocity": self.mouse_velocity,
             "click_frequency": self.click_frequency,
-            "trained": self.trained
+            "dwell_time": self.dwell_time,
+            "scroll_distance": self.scroll_distance,
+            "keypress_rate": self.keypress_rate,
+            "cursor_variation": self.cursor_variation,
         }
 
 class IPTrustRequest(Base):

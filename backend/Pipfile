@@ -17,6 +17,7 @@ bcrypt = "*"
 elasticsearch = "==7.17.7"
 CMRESHandler2 = "*"
 apscheduler = "*"
+pandas = "*"
 
 [requires]
 python_version = "3.11"

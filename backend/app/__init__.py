@@ -3,7 +3,7 @@ from flask_cors import CORS
 from app.utils.logger import setup_logger
 from datetime import datetime
 import json
-from app.services.model_service import train_and_save_model
+from app.services.model_service import train_all_users
 from apscheduler.schedulers.background import BackgroundScheduler
 
 def create_app():
@@ -74,7 +74,7 @@ def create_app():
         return {"error": "Internal server error"}, 500
 
     scheduler = BackgroundScheduler()
-    scheduler.add_job(train_and_save_model, "cron", minute="*/2")  # Every five minutes
+    scheduler.add_job(train_all_users, "cron", minute="*/2")  # Every 2 minutes
     scheduler.start()
     
     return app

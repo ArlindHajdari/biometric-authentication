@@ -51,3 +51,6 @@ backend/Pipfile.lock
 # Model artifacts
 /model/
 backend/model/
+
+# Code owners
+.github/CODEOWNERS

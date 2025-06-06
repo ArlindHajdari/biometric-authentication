@@ -21,6 +21,10 @@ CREATE TABLE IF NOT EXISTS training_samples (
     flight_time JSONB,
     mouse_velocity JSONB,
     click_frequency JSONB,
+    dwell_time JSONB,
+    scroll_distance JSONB,
+    keypress_rate JSONB,
+    cursor_variation JSONB,
     trained BOOLEAN DEFAULT FALSE
 );
 

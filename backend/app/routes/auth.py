@@ -5,8 +5,7 @@ from app.services.otp_service import send_otp
 from app.services.ip_service import evaluate_ip_trust
 from app.utils.hash_password import verify_password
 from app.utils.logger import setup_logger
-from app.services.model_service import load_model, predict_user, store_metrics_for_training, compute_fitness
-from app.config import app_mode
+from app.services.model_service import predict_user_authenticity, store_metrics_for_training, compute_fitness
 
 auth_bp = Blueprint('auth', __name__)
 logger = setup_logger(__name__)
@@ -62,7 +61,7 @@ def authenticate():
         
         logger.info(f"Re-authenticating {email} with new metrics.")
 
-        confidence = predict_user(email, metrics)
+        confidence = predict_user_authenticity(email, metrics)
         
         ip = request.headers.get("X-Forwarded-For", request.remote_addr)
         logger.info(f"[EVALUATING] Received users IP: {ip}")

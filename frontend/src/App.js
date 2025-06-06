@@ -20,31 +20,31 @@ import {
 const PhaseFlow = ({
   phase,
   email,
-  authResult,
   onLogout,
   onLoginSuccess,
-  onOTPSuccess,
-  onBehavioralResponse
+  onOTPSuccess
 }) => {
+
+  const suspiciousLimitMs = parseInt(process.env.REACT_APP_SUSPICIOUS_ACTIVITY_SECONDS || "10", 10);
   const [authenticated, setAuthentication] = useState(true);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
-  const [logoutCountdown, setLogoutCountdown] = useState(3);
-  const countdownRef = useRef(null);
+  const [logoutCountdown, setLogoutCountdown] = useState(suspiciousLimitMs);
+  const countdownSusRef = useRef(null);
 
   const handleBehavioralVerification = (data) => {
     setAuthentication(data.authenticated);
+
     if (!authenticated && !showLogoutDialog) {
       setShowLogoutDialog(true);
-      startLogoutCountdown();
     }
   };
 
   const startLogoutCountdown = () => {
-    setLogoutCountdown(3);
-    countdownRef.current = setInterval(() => {
+    setLogoutCountdown(suspiciousLimitMs);
+    countdownSusRef.current = setInterval(() => {
       setLogoutCountdown((prev) => {
         if (prev === 1) {
-          clearInterval(countdownRef.current);
+          clearInterval(countdownSusRef.current);
           setShowLogoutDialog(false);
           onLogout();
           return 0;
@@ -53,6 +53,13 @@ const PhaseFlow = ({
       });
     }, 1000);
   };
+
+  useEffect(() => {
+    if (showLogoutDialog) {
+      localStorage.setItem("logout_pending", "true");
+      startLogoutCountdown();
+    }
+  }, [showLogoutDialog]);
 
   return (
     <>
@@ -80,7 +87,7 @@ const PhaseFlow = ({
         <DialogTitle>Session Security Warning</DialogTitle>
         <DialogContent>
           <Typography>
-            Low confidence detected. Logging out in {logoutCountdown} second{logoutCountdown !== 1 ? "s" : ""}.
+            Low confidence detected. Logging out in  <strong>{logoutCountdown}</strong> second{logoutCountdown !== 1 ? "s" : ""}.
           </Typography>
         </DialogContent>
       </Dialog>
@@ -101,6 +108,14 @@ const App = () => {
   const getInitialAuthResult = () => {
     return JSON.parse(localStorage.getItem("auth_result")) || null;
   };
+
+  useEffect(() => {
+    const logoutFlag = localStorage.getItem("logout_pending");
+    if (logoutFlag === "true") {
+      handleLogout();
+      localStorage.removeItem("logout_pending");
+    }
+  }, []);
 
   const [phase, setPhase] = useState(getInitialPhase());
   const [email, setEmail] = useState(getInitialEmail());
@@ -128,17 +143,6 @@ const App = () => {
 
   const handleOtpSuccess = () => {
     updatePhase("done");
-  };
-
-  const handleBehavioralResponse = (data) => {
-    if (data.authenticated) {
-      updatePhase("done");
-    } else {
-      updatePhase("login");
-      updateEmail("");
-    }
-    console.log(data);
-    updateAuthResult(data);
   };
 
   const handleLogout = () => {
@@ -226,14 +230,12 @@ const App = () => {
             <Route path="/" element={<PhaseFlow
                                       phase={phase}
                                       email={email}
-                                      authResult={authResult}
                                       setPhase={updatePhase}
                                       setEmail={updateEmail}
                                       setAuthResult={setAuthResult}
                                       onLogout={handleLogout}
                                       onLoginSuccess={handleLoginSuccess}
                                       onOTPSuccess={handleOtpSuccess}
-                                      onBehavioralResponse={handleBehavioralResponse}
                                     />} />
             <Route path="/approve-ip" element={<ApproveIPForm />} />
           </Routes>
