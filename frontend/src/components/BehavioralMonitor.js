@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Typography,
   TextField,
@@ -16,27 +16,44 @@ import useBehaviorMetrics from "../hooks/useBehaviorMetrics";
 const BehavioralMonitor = ({ email, onProcess }) => {
   const [typingText, setTypingText] = useState("");
   const [status, setStatus] = useState("Authenticated");
-  const { metrics, trackKey, trackMouse, trackClick, trackDwellStart, trackDwellEnd, trackScroll, computeKeypressRate, computeCursorVariation, resetMetrics } = useBehaviorMetrics();
+  const { metrics, computeKeypressRate, computeCursorVariation ,resetMetrics } = useBehaviorMetrics(process.env.METRICS_THROTTLE_MS);
+  const frequencyOfMetrics = process.env.FREQUENCY_OF_METRICS_MS || 10000;
+  const metricsRef = useRef(metrics);
 
   useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const isEmpty =
-          !metrics ||
-          Object.keys(metrics).length === 0 ||
-          Object.values(metrics).every((value) =>
-            Array.isArray(value) ? value.length === 0 : !value
-          );
+    metricsRef.current = metrics;
+  }, [metrics]);
 
-        if (isEmpty) {
+  const isEmptyMetrics = (metrics) => {
+    if (!metrics || Object.keys(metrics).length === 0) return true;
+
+    return Object.values(metrics).every((arr) => {
+      if (!Array.isArray(arr)) return true;
+      if (arr.length === 0) return true;
+      return arr.every((num) => !num);
+    });
+  };
+
+  useEffect(() => {
+    const computeInterval = setInterval(() => {
+      computeKeypressRate();
+      computeCursorVariation();
+    }, 1000);
+
+    const sendInterval = setInterval(async () => {
+      try {
+        const currentMetrics = metricsRef.current;
+
+        if (isEmptyMetrics(currentMetrics)) {
           setStatus("Authenticated");
-          onProcess({ confidence: 1.0, authenticated: true }); 
+          onProcess({ confidence: 1.0, authenticated: true });
+          resetMetrics();
           return;
         }
 
         let res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/authenticate`, {
           email,
-          metrics
+          metrics: currentMetrics
         });
         
         if (!res.data.authenticated) {
@@ -52,12 +69,14 @@ const BehavioralMonitor = ({ email, onProcess }) => {
         onProcess(err_data);        
       }
       resetMetrics();
-    }, 5_000);
+    }, frequencyOfMetrics);
 
-    return () => clearInterval(interval);
-  }, [metrics]);
-
-  
+    return () => 
+      {
+        clearInterval(sendInterval);
+        clearInterval(computeInterval);
+      };
+  }, []);
 
   return (
     <Stack spacing={3} sx={{ mt: 6, maxWidth: 600, mx: "auto" }}>
@@ -87,8 +106,6 @@ const BehavioralMonitor = ({ email, onProcess }) => {
         <Slider
           data-track-dwell
           id="simulation-slider"
-          onMouseEnter={() => trackDwellStart("simulation-slider")}
-          onMouseLeave={() => trackDwellEnd("simulation-slider")}
           defaultValue={50}
           aria-label="Sensitivity"
         />
@@ -99,8 +116,6 @@ const BehavioralMonitor = ({ email, onProcess }) => {
         <Button
           data-track-dwell
           id="simulation-button"
-          onMouseEnter={() => trackDwellStart("simulation-button")}
-          onMouseLeave={() => trackDwellEnd("simulation-button")}
           variant="contained"
         >
           Simulate Action

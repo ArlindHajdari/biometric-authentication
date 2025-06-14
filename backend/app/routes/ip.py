@@ -1,16 +1,69 @@
 from flask import Blueprint, request, jsonify
 from app.db import SessionLocal
-from app.models import IPTrustRequest, UserIP
+from app.models import IPTrustRequest
 from app.utils.logger import setup_logger
 from datetime import datetime
 from app.config import Config
 from app.services.ip_service import send_ip_trust_approval_email
 
 ip_bp = Blueprint('ip', __name__)
-logger = setup_logger(__name__)
+logger = setup_logger()
 
 @ip_bp.route("/approve-ip", methods=["POST"])
 def approve_ip():
+    """
+    Approve and trust a user's IP address using a token
+    ---
+    tags:
+      - IP Trust
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            token:
+              type: string
+              description: Token received by email for IP approval
+    responses:
+      200:
+        description: IP trusted successfully or already trusted
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      400:
+        description: Missing token
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      404:
+        description: Invalid or expired token
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      410:
+        description: Token has expired
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+    """
     data = request.get_json()
     token = data.get("token")
     

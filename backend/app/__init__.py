@@ -5,9 +5,11 @@ from datetime import datetime
 import json
 from app.services.model_service import train_all_users
 from apscheduler.schedulers.background import BackgroundScheduler
+from flasgger import Swagger
 
 def create_app():
     app = Flask(__name__)
+    Swagger(app)
     CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
     logger = setup_logger()
 

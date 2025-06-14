@@ -10,7 +10,7 @@ from sklearn.svm import OneClassSVM
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import StandardScaler
 
-logger = setup_logger(__name__)
+logger = setup_logger()
 
 def load_model(email):
     model_complete_path = os.path.join(Config.MODEL_PATH, f"{email.split('@')[0]}.pkl")
@@ -83,6 +83,9 @@ def train_or_update_model(email: str, X_raw: np.ndarray, incremental: bool = Tru
 
         kmeans = KMeans(n_clusters=1, random_state=42)
         cluster_center = kmeans.fit(X_scaled).cluster_centers_
+        
+        all_distances = np.linalg.norm(X_scaled - cluster_center, axis=1)
+        D_max = np.mean(all_distances) + 2 * np.std(all_distances)
 
         clf = OneClassSVM(kernel='rbf', gamma='scale', nu=0.1)
         clf.fit(X_scaled)
@@ -90,9 +93,10 @@ def train_or_update_model(email: str, X_raw: np.ndarray, incremental: bool = Tru
         clf.X_train_ = X_raw
         clf.scaler_ = scaler
         clf.cluster_center_ = cluster_center
+        clf.cluster_distance_max_ = D_max
 
         save_model(email, clf)
-        logger.info(f"Model for {email} trained on {len(X_raw)} samples.")
+        logger.info(f"[train_or_update_model] Model for {email} trained on {len(X_raw)} samples.")
         return True
 
     except Exception as e:
@@ -137,8 +141,24 @@ def predict_user_authenticity(email: str, metrics: dict[str, list[float]]) -> bo
     if hasattr(model, "scaler_"):
         X_input = model.scaler_.transform(X_input)
 
-    prediction = model.predict(X_input)
-    return prediction[0] == 1 
+    prediction = model.predict(X_input)[0]
+    svm_score = 1.0 if prediction == 1 else 0.0
+    
+    if hasattr(model, "cluster_center_"):
+        distance = np.linalg.norm(X_input - model.cluster_center_)
+        logger.info(f"[predict_user_authenticity] Distance to centroid: {distance:.4f}")
+
+        D_max = getattr(model, "cluster_distance_max_", 3.0)
+        distance_score = max(0.0, 1.0 - (distance / D_max))
+    else:
+        distance_score = 0.0
+
+    w_svm = float(Config.SVM_WEIGHT)
+    w_dist = float(Config.CLUSTER_WEIGHT)
+    fitness = w_svm * svm_score + w_dist * distance_score
+
+    logger.info(f"[predict_user_authenticity] SVM={svm_score}, Distance_Score={distance_score:.4f}, Fitness={fitness:.4f}")
+    return prediction == 1 
 
 def store_metrics_for_training(email, metrics):
     if not email or not metrics:

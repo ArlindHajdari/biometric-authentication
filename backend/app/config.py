@@ -12,5 +12,7 @@ class Config:
     AUTO_TRUST_THRESHOLD = int(os.getenv("AUTO_TRUST_THRESHOLD", 3))
     IP_WEIGHT = os.getenv("IP_WEIGHT", 0.3)
     BIOMETRICS_WEIGHT = os.getenv("BIOMETRICS_WEIGHT", 0.7)
+    CLUSTER_WEIGHT = os.getenv("CLUSTER_WEIGHT", 0.5)
+    SVM_WEIGHT = os.getenv("SVM_WEIGHT", 0.5)
     MIN_SAMPLES_REQUIRED = int(os.getenv("MIN_SAMPLES_REQUIRED", 30))
     INCREMENTAL_TRAINING_ENABLED = bool(os.getenv("INCREMENTAL_TRAINING_ENABLED", True))

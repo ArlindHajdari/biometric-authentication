@@ -7,7 +7,7 @@ from app.utils.mailer import send_email
 
 # Connect to Redis
 r = redis.Redis(host=Config.REDIS_HOST, port=Config.REDIS_PORT, decode_responses=True)
-logger = setup_logger(__name__)
+logger = setup_logger()
 
 def generate_otp():
     return ''.join(random.choices(string.digits, k=6))

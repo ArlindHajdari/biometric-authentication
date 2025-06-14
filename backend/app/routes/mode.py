@@ -4,10 +4,51 @@ from app.models import User
 from app.utils.logger import setup_logger
 
 mode_bp = Blueprint("mode", __name__)
-logger = setup_logger(__name__)
+logger = setup_logger()
 
 @mode_bp.route("/mode", methods=["GET"])
 def get_mode():
+    """
+    Get the current mode for a user
+    ---
+    tags:
+      - Mode
+    parameters:
+      - in: query
+        name: email
+        schema:
+          type: string
+        required: true
+        description: User's email address
+    responses:
+      200:
+        description: Current mode for the user
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                mode:
+                  type: string
+      400:
+        description: Email is required
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      404:
+        description: User not found
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+    """
     email = request.args.get("email")
     if not email:
         return jsonify({"error": "Email is required"}), 400
@@ -29,6 +70,54 @@ def get_mode():
 
 @mode_bp.route("/mode", methods=["POST"])
 def set_mode():
+    """
+    Set the mode for a user
+    ---
+    tags:
+      - Mode
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: alice@example.com
+            mode:
+              type: string
+              enum: [auth, train]
+              example: train
+    responses:
+      200:
+        description: Mode updated successfully
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      400:
+        description: Email and mode are required or invalid mode
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      404:
+        description: User not found
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+    """
     data = request.get_json()
     email = data.get("email")
     new_mode = data.get("mode")

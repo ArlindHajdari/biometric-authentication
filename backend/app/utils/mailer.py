@@ -4,7 +4,7 @@ from app.config import Config
 from app.utils.logger import setup_logger
 import smtplib, ssl
 
-logger = setup_logger(__name__)
+logger = setup_logger()
     
 def send_email(to, subject, body):
     msg = EmailMessage()

@@ -1,6 +1,17 @@
 import { useRef, useState, useEffect } from "react";
 
-const useBehaviorMetrics = () => {
+export const throttle = (func, limit) => {
+  let inThrottle;
+  return function (...args) {
+    if (!inThrottle) {
+      func.apply(this, args);
+      inThrottle = true;
+      setTimeout(() => (inThrottle = false), limit);
+    }
+  };
+};
+
+const useBehaviorMetrics = (THROTTLE_MS = 5000) => {
   const lastKeyDown = useRef({});
   const [metrics, setMetrics] = useState({
     hold_time: [],
@@ -134,17 +145,17 @@ const useBehaviorMetrics = () => {
       delete dwellTimers.current[id];
     }
   };
-
+  
   useEffect(() => {
+    const throttledTrackMouse = throttle(trackMouse, THROTTLE_MS);
     const handleKeyDown = (e) => trackKey(e, "down");
     const handleKeyUp = (e) => trackKey(e, "up");
-    const handleMouseMove = (e) => trackMouse(e);
-    const handleClick = () => trackClick();
 
+    window.addEventListener("mousemove", throttledTrackMouse);
     window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("keyup", handleKeyUp);
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("click", handleClick);
+    window.addEventListener("click", trackClick);
+    window.addEventListener("scroll", trackScroll);
 
     const attachDwellListeners = (el) => {
       if (!el.dataset.trackDwellAttached) {
@@ -167,10 +178,11 @@ const useBehaviorMetrics = () => {
     scanAll();
 
     return () => {
+      window.removeEventListener("mousemove", throttledTrackMouse);
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("keyup", handleKeyUp);
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("click", handleClick);
+      window.removeEventListener("click", trackClick);
+      window.removeEventListener("scroll", trackScroll);
       observer.disconnect();
     };
   }, []);
@@ -192,12 +204,7 @@ const useBehaviorMetrics = () => {
 
   return {
     metrics,
-    trackKey,
-    trackMouse,
-    trackClick,
-    trackDwellStart,
-    trackDwellEnd,
-    trackScroll,
+    setMetrics,
     computeKeypressRate,
     computeCursorVariation,
     resetMetrics,

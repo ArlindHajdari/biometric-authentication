@@ -1,7 +1,7 @@
 import logging
 from cmreslogging.handlers import CMRESHandler
 
-def setup_logger(name='app', level=logging.INFO):
+def setup_logger(name='biometrics', level=logging.INFO):
     try:
         logger = logging.getLogger(name)
         if logger.handlers:
@@ -17,7 +17,7 @@ def setup_logger(name='app', level=logging.INFO):
         es_handler = CMRESHandler(
             hosts=[{'host': 'elasticsearch', 'port': 9200}],
             auth_type=CMRESHandler.AuthType.NO_AUTH,
-            es_index_name="flask-logs",
+            es_index_name="biometrics-logs",
             use_ssl=False,
             raise_on_indexing_exceptions=True
         )
@@ -25,5 +25,5 @@ def setup_logger(name='app', level=logging.INFO):
 
         logger.setLevel(level)
         return logger
-    except ex:
+    except Exception as ex:
         logger.info(f"Failed to set up logger: {ex}")

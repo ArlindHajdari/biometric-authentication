@@ -8,10 +8,66 @@ from app.utils.logger import setup_logger
 from app.services.model_service import predict_user_authenticity, store_metrics_for_training, compute_fitness
 
 auth_bp = Blueprint('auth', __name__)
-logger = setup_logger(__name__)
+logger = setup_logger()
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
+    """
+    User login endpoint
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: alice@example.com
+            password:
+              type: string
+              example: password123
+    responses:
+      200:
+        description: OTP sent
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                message:
+                  type: string
+      400:
+        description: Missing credentials
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      401:
+        description: Invalid credentials
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      500:
+        description: Login failed
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+    """
     try:
         data = request.get_json()
         email = data.get("email")
@@ -40,6 +96,81 @@ def login():
 
 @auth_bp.route("/authenticate", methods=["POST"])
 def authenticate():
+    """
+    Authenticate user with behavioral biometrics and IP trust
+    ---
+    tags:
+      - Authentication
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: alice@example.com
+            metrics:
+              type: object
+              properties:
+                hold_time:
+                  type: array
+                  items: { type: number }
+                flight_time:
+                  type: array
+                  items: { type: number }
+                mouse_velocity:
+                  type: array
+                  items: { type: number }
+                click_frequency:
+                  type: array
+                  items: { type: number }
+                dwell_time:
+                  type: array
+                  items: { type: number }
+                scroll_distance:
+                  type: array
+                  items: { type: number }
+                keypress_rate:
+                  type: array
+                  items: { type: number }
+                cursor_variation:
+                  type: array
+                  items: { type: number }
+    responses:
+      200:
+        description: Authentication result
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authenticated:
+                  type: boolean
+                confidence:
+                  type: number
+      404:
+        description: User not found
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      500:
+        description: Authentication failed
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                authenticated:
+                  type: boolean
+                confidence:
+                  type: number
+    """
     db = SessionLocal()
     try:
         data = request.get_json()

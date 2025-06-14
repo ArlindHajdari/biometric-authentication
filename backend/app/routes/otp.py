@@ -5,10 +5,57 @@ from app.utils.logger import setup_logger
 from app.services.ip_service import register_or_increment_ip
 
 otp_bp = Blueprint('otp', __name__)
-logger = setup_logger(__name__)
+logger = setup_logger()
 
 @otp_bp.route("/verify_otp", methods=["POST"])
 def verification():
+    """
+    Verify OTP for user and register/increment IP trust
+    ---
+    tags:
+      - OTP
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: alice@example.com
+            otp:
+              type: string
+              example: "123456"
+    responses:
+      200:
+        description: OTP verification result
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                verified:
+                  type: boolean
+      400:
+        description: Missing details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      500:
+        description: OTP verification failed
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+    """
     try:
         data = request.get_json()
         email = data.get("email")

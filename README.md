@@ -39,12 +39,43 @@ This project is a full-stack solution for continuous user authentication using b
 
 ### Detailed Features
 
-#### Behavioral Biometrics & AI Model
+#### Behavioral Biometrics & Artificial Intelligence Model
 
-- **Metrics Collected:** Hold time, flight time, mouse velocity, click frequency, dwell time, scroll distance, keypress rate, cursor variation
-- **Model Training:** Per-user models are trained using OneClassSVM and KMeans, with feature scaling. Models are retrained periodically and incrementally.
-- **Model Storage:** Models are persisted as files in a Docker volume, ensuring data is not lost on container restart.
-- **Authentication:** In "auth" mode, user metrics are evaluated by the trained model and combined with IP trust score for a final fitness score.
+The backend leverages advanced AI techniques to continuously authenticate users based on their behavioral biometrics. The core logic is implemented in [`model_service.py`](backend/app/services/model_service.py), which handles feature extraction, model training, prediction, and data management.
+
+**Feature Extraction:**
+- For each user, behavioral metrics are collected: hold time, flight time, mouse velocity, click frequency, dwell time, scroll distance, keypress rate, and cursor variation.
+- The `flatten_features` function computes the mean of each metric, transforming raw lists into a fixed-length feature vector suitable for model input.
+
+**Model Training:**
+- Each user has a dedicated model, trained on their behavioral data.
+- The training pipeline includes:
+  - **Scaling:** Features are standardized using `StandardScaler` to ensure consistent input for the models.
+  - **Clustering:** `KMeans` with a single cluster is used to compute the centroid of the user's behavior in feature space. The maximum allowed distance (`D_max`) from the centroid is calculated as the mean plus two standard deviations of all distances.
+  - **Anomaly Detection:** `OneClassSVM` is trained on the scaled features to distinguish genuine behavior from anomalies.
+  - **Incremental Training:** If a model already exists for a user, new data is appended to previous training data, allowing the model to adapt over time.
+- Trained models are persisted to disk using `joblib`, and the model files are stored in a Docker volume for durability.
+
+**Scheduled Retraining:**
+- The system periodically (every 2 minutes by default) retrains models for all users with new, untrained samples. After successful training, those samples are marked as "trained" in the database.
+
+**Prediction & Authentication:**
+- When a user attempts authentication, their current behavioral metrics are processed into a feature vector.
+- The model predicts if the behavior is genuine using the SVM. Additionally, the distance from the current sample to the user's behavioral centroid is computed.
+- A composite fitness score is calculated by combining the SVM prediction and the normalized distance score, weighted according to configuration.
+- If the model or sufficient data is not available, the system defaults to storing the metrics for future training and may fall back to other authentication factors.
+
+**Metrics Storage Optimization:**
+- The system only stores behavioral samples if at least one metric contains data, preventing the database from being filled with empty or meaningless records.
+
+**Key Functions in `model_service.py`:**
+- `train_or_update_model`: Handles the full training pipeline for a user's model.
+- `predict_user_authenticity`: Processes new metrics and returns a prediction and confidence score.
+- `train_all_users`: Batch retrains models for all users with new data.
+- `store_metrics_for_training`: Validates and stores new behavioral samples.
+- `compute_fitness`: Combines model and IP trust scores for final authentication.
+
+This AI-driven approach enables adaptive, user-specific, and privacy-preserving continuous authentication, significantly enhancing security beyond traditional methods.
 
 #### Multi-Factor Authentication (OTP)
 

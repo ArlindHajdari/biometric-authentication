@@ -5,7 +5,7 @@ from app.config import Config
 from app.db import SessionLocal
 from app.utils.logger import setup_logger
 
-logger = setup_logger(__name__)
+logger = setup_logger()
 
 def send_ip_trust_request_email(email, ip, token):
     link = f"{Config.FRONTEND_BASE_URL}/approve-ip?token={token}"
