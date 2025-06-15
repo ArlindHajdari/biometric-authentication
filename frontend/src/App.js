@@ -33,8 +33,7 @@ const PhaseFlow = ({
 
   const handleBehavioralVerification = (data) => {
     setAuthentication(data.authenticated);
-
-    if (!authenticated && !showLogoutDialog) {
+    if (!data.authenticated && !showLogoutDialog) {
       setShowLogoutDialog(true);
     }
   };
