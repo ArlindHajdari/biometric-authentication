@@ -77,10 +77,11 @@ The backend leverages advanced AI techniques to continuously authenticate users 
 
 This AI-driven approach enables adaptive, user-specific, and privacy-preserving continuous authentication, significantly enhancing security beyond traditional methods.
 
-#### Multi-Factor Authentication (OTP)
+#### Multi-Factor Authentication (OTP) & Threat IP Detection
 
 - **OTP Generation:** 6-digit codes sent via email using Redis for temporary storage and expiration.
 - **OTP Verification:** Endpoint to verify OTP and register/increment IP trust on success.
+- **Threat IP Detection:** During login, the backend checks the user's IP address against a threat intelligence service. If the IP is flagged as a known threat or abuser, login is immediately denied with a clear error message and logged as a security event. This adds an extra layer of protection against malicious login attempts from suspicious sources.
 
 #### IP Trust Management
 
