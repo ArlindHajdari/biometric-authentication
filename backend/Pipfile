@@ -19,6 +19,7 @@ CMRESHandler2 = "*"
 apscheduler = "*"
 pandas = "*"
 flasgger = "*"
+requests = "*"
 
 [requires]
 python_version = "3.11"

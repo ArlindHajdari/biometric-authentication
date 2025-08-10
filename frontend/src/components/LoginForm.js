@@ -39,7 +39,7 @@ const LoginForm = ({ onSuccess }) => {
         }
         console.log(err.config);
 
-      setError("Invalid email or password.");
+      setError(err.response.data?.error || "Login failed. Please try again.");
     }
     setLoading(false);
   };

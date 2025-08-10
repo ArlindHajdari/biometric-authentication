@@ -3,6 +3,7 @@ from app.db import SessionLocal
 from app.models import User
 from app.services.otp_service import send_otp
 from app.services.ip_service import evaluate_ip_trust
+from app.services.ip_service import is_threat_ip
 from app.utils.hash_password import verify_password
 from app.utils.logger import setup_logger
 from app.services.model_service import predict_user_authenticity, store_metrics_for_training, compute_fitness
@@ -72,8 +73,13 @@ def login():
         data = request.get_json()
         email = data.get("email")
         password = data.get("password")
+        ip = request.headers.get("X-Forwarded-For", request.remote_addr)
         logger.info(f"Login attempt for {email}")
-
+        
+        if is_threat_ip(ip):
+            logger.warning(f"Threat IP detected: {ip} for user {email}")
+            return jsonify({"error": "Access denied from this IP"}), 403
+        
         if not email or not password:
             logger.warning("Missing email or password")
             return jsonify({"error": "Missing credentials"}), 400

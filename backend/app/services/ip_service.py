@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from app.config import Config
 from app.db import SessionLocal
 from app.utils.logger import setup_logger
+import requests
 
 logger = setup_logger()
 
@@ -144,3 +145,19 @@ def evaluate_ip_trust(email, ip):
     finally:
         db.close()
 
+def is_threat_ip(ip):
+    try:
+        logger.info(f"[is_threat_ip] IP: {ip}")
+    
+        url = f"https://api.ipdata.co/{ip}?api-key={Config.IP_TRUST_API_KEY}"
+        resp = requests.get(url, timeout=5).json()
+        
+        logger.info(f"[is_threat_ip] IP Score response: {resp}")
+        
+        is_threat = resp.get("threat", {}).get("is_threat", False)
+        is_known_abuser = resp.get("threat", {}).get("is_known_abuser", False)
+        
+        return is_threat and is_known_abuser
+    except Exception as e:
+        logger.exception(f"Failed to check threat IP {ip} with exception: {e}")
+        return False
