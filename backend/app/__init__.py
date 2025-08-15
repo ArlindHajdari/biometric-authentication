@@ -6,12 +6,38 @@ import json
 from app.services.model_service import train_all_users
 from apscheduler.schedulers.background import BackgroundScheduler
 from flasgger import Swagger
+from app.config import Config
+from flask_jwt_extended import JWTManager
 
 def create_app():
     app = Flask(__name__)
+    app.config["JWT_SECRET_KEY"] = Config.JWT_SECRET_KEY
     Swagger(app)
-    CORS(app, resources={r"/api/*": {"origins": "http://localhost:3000"}})
+    CORS(
+        app, 
+        resources={r"/api/*": {"origins": "http://localhost:3000"}},
+        allow_headers=["Content-Type", "Authorization"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    )
     logger = setup_logger()
+    
+    jwt = JWTManager(app)
+
+    @jwt.unauthorized_loader
+    def missing_token_callback(reason):
+        return {"msg": f"Missing or invalid token: {reason}"}, 401
+
+    @jwt.expired_token_loader
+    def expired_token_callback(jwt_header, jwt_payload):
+        return {"msg": "Token has expired"}, 401
+
+    @jwt.invalid_token_loader
+    def invalid_token_callback(reason):
+        return {"msg": f"Invalid token: {reason}"}, 422
+
+    @jwt.revoked_token_loader
+    def revoked_token_callback(jwt_header, jwt_payload):
+        return {"msg": "Token has been revoked"}, 401
 
     # Register blueprints
     from app.routes.auth import auth_bp
@@ -25,6 +51,9 @@ def create_app():
     
     from app.routes.mode import mode_bp
     app.register_blueprint(mode_bp, url_prefix="/api")
+    
+    from app.routes.token import token_bp
+    app.register_blueprint(token_bp, url_prefix="/api")
     
     # Log every request
     @app.before_request

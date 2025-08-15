@@ -1,8 +1,9 @@
 from flask import Blueprint, request, jsonify
-from app.models import User
 from app.services.otp_service import verify_otp
 from app.utils.logger import setup_logger
 from app.services.ip_service import register_or_increment_ip
+from app.config import Config
+from app.security.jwt_helpers import generate_tokens
 
 otp_bp = Blueprint('otp', __name__)
 logger = setup_logger()
@@ -73,8 +74,15 @@ def verification():
             
             register_or_increment_ip(email, ip)
             logger.info(f"OTP verified for {email}")
-        
-        return jsonify({"verified": verified})
+          
+        access_token, refresh_token = generate_tokens(email)
+
+        return jsonify({
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "Bearer",
+            "expires_in": Config.JWT_ACCESS_TTL_MIN * 60
+        })
 
     except Exception as e:
         logger.exception("Otp verification error", exc_info=e)

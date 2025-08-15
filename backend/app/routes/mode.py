@@ -2,11 +2,13 @@ from flask import Blueprint, request, jsonify
 from app.db import SessionLocal
 from app.models import User
 from app.utils.logger import setup_logger
+from flask_jwt_extended import jwt_required
 
 mode_bp = Blueprint("mode", __name__)
 logger = setup_logger()
 
 @mode_bp.route("/mode", methods=["GET"])
+@jwt_required()
 def get_mode():
     """
     Get the current mode for a user
@@ -69,6 +71,7 @@ def get_mode():
         session.close()
 
 @mode_bp.route("/mode", methods=["POST"])
+@jwt_required()
 def set_mode():
     """
     Set the mode for a user

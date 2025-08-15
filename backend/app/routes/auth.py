@@ -7,6 +7,7 @@ from app.services.ip_service import is_threat_ip
 from app.utils.hash_password import verify_password
 from app.utils.logger import setup_logger
 from app.services.model_service import predict_user_authenticity, store_metrics_for_training, compute_fitness
+from flask_jwt_extended import jwt_required
 
 auth_bp = Blueprint('auth', __name__)
 logger = setup_logger()
@@ -93,6 +94,7 @@ def login():
             return jsonify({"error": "Invalid credentials"}), 401
 
         send_otp(email)
+        
         logger.info(f"OTP sent to {email}")
         return jsonify({"message": "OTP sent"})
 
@@ -101,6 +103,7 @@ def login():
         return jsonify({"error": "Login failed"}), 500
 
 @auth_bp.route("/authenticate", methods=["POST"])
+@jwt_required()
 def authenticate():
     """
     Authenticate user with behavioral biometrics and IP trust
