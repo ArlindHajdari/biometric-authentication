@@ -69,9 +69,10 @@ def register_or_increment_ip(email, ip):
                     logger.info(f"[IP REGISTRATION] IP {ip} exceeded {Config.AUTO_TRUST_THRESHOLD} successful logins but has not confirmed the email. Confirmation sent.")
                 elif ip_trust_request.confirmed:
                     logger.info(f"[IP REGISTRATION] IP {ip} already trusted for {email}. No action needed.")
-                elif ip_trust_request.expires_at > datetime.utcnow():
+                elif ip_trust_request.expires_at + timedelta(hours=3) <= datetime.utcnow():
                     logger.info(f"[IP REGISTRATION] IP {ip} already has a pending trust request for {email}. Resending confirmation email.")
                     ip_trust_request.expires_at=datetime.utcnow() + timedelta(hours=3)
+                    ip_trust_request.requested_at = datetime.utcnow()
                     db.commit()
                     send_ip_trust_request_email(email, ip, str(ip_trust_request.id))
                 else:

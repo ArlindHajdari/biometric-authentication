@@ -20,6 +20,7 @@ apscheduler = "*"
 pandas = "*"
 flasgger = "*"
 requests = "*"
+flask-jwt-extended = "*"
 
 [requires]
 python_version = "3.11"

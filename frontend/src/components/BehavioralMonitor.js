@@ -9,7 +9,7 @@ import {
   FormControlLabel,
   Slider
 } from "@mui/material";
-import axios from "axios";
+import api from "../api/axiosInstance";
 
 import useBehaviorMetrics from "../hooks/useBehaviorMetrics";
 
@@ -51,7 +51,7 @@ const BehavioralMonitor = ({ email, onProcess }) => {
           return;
         }
 
-        let res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/authenticate`, {
+        let res = await api.post(`${process.env.REACT_APP_API_BASE_URL}/authenticate`, {
           email,
           metrics: currentMetrics
         });

@@ -1,13 +1,14 @@
 from flask import Blueprint, request, jsonify
-from app.models import User
 from app.services.otp_service import verify_otp
 from app.utils.logger import setup_logger
 from app.services.ip_service import register_or_increment_ip
+from flask_jwt_extended import jwt_required
 
 otp_bp = Blueprint('otp', __name__)
 logger = setup_logger()
 
 @otp_bp.route("/verify_otp", methods=["POST"])
+@jwt_required()
 def verification():
     """
     Verify OTP for user and register/increment IP trust
@@ -75,7 +76,6 @@ def verification():
             logger.info(f"OTP verified for {email}")
         
         return jsonify({"verified": verified})
-
     except Exception as e:
         logger.exception("Otp verification error", exc_info=e)
         return jsonify({"error": "OTP verification failed"}), 500
