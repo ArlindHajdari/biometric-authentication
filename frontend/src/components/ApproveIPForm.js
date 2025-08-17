@@ -22,7 +22,7 @@ const ApproveIPForm = () => {
       return;
     }
     
-    api.post(`${process.env.REACT_APP_API_BASE_URL}/approve-ip`, { token })
+    api.post(`/approve-ip`, { token })
       .then(res => {
         setStatus("success");
         setMessage(res.data.message || "IP address trusted successfully.");

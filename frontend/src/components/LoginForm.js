@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import api from "../api/axiosInstance";
 import {
   Button,
@@ -22,7 +22,7 @@ const LoginForm = ({ onSuccess }) => {
 
     e.preventDefault();
     try {
-      const res = await api.post(`${process.env.REACT_APP_API_BASE_URL}/login`, { 
+      const res = await api.post(`/login`, { 
         email, 
         password 
       });

@@ -51,7 +51,7 @@ const BehavioralMonitor = ({ email, onProcess }) => {
           return;
         }
 
-        let res = await api.post(`${process.env.REACT_APP_API_BASE_URL}/authenticate`, {
+        let res = await api.post(`/authenticate`, {
           email,
           metrics: currentMetrics
         });
