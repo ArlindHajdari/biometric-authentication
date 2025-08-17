@@ -4,6 +4,8 @@ import LoginForm from "./components/LoginForm";
 import MFAForm from "./components/MFAForm";
 import BehavioralMonitor from "./components/BehavioralMonitor";
 import ApproveIPForm from "./components/ApproveIPForm";
+import api from "./api/axiosInstance";
+import {clearTokens} from "./auth/tokenManager";
 import {
   Container,
   Paper,
@@ -144,10 +146,15 @@ const App = () => {
     updatePhase("done");
   };
 
-  const handleLogout = () => {
-    updateEmail("");
-    updateAuthResult(null);
-    updatePhase("login");
+  async function handleLogout(){
+    try {
+      await api.post("/logout");
+    } finally {
+      clearTokens();
+      updateEmail("");
+      updateAuthResult(null);
+      updatePhase("login");
+    }
   };
 
   const inactivityLimitMs = parseInt(process.env.REACT_APP_INACTIVITY_LIMIT_MS || "30000", 10);

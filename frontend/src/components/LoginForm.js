@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import axios from "axios";
+import api from "../api/axiosInstance";
 import {
   Button,
   TextField,
@@ -8,6 +8,7 @@ import {
   CircularProgress,
   Alert
 } from "@mui/material";
+import { setAccessToken } from "../auth/tokenManager";
 
 const LoginForm = ({ onSuccess }) => {
   const [email, setEmail] = useState("");
@@ -21,11 +22,11 @@ const LoginForm = ({ onSuccess }) => {
 
     e.preventDefault();
     try {
-      await axios.post(`${process.env.REACT_APP_API_BASE_URL}/login`, { 
+      const res = await api.post(`${process.env.REACT_APP_API_BASE_URL}/login`, { 
         email, 
         password 
       });
-
+      setAccessToken(res.data.access_token);
       onSuccess(email);
     } catch (err) {
       if (err.response) {

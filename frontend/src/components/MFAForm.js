@@ -7,7 +7,7 @@ import {
   Box,
   TextField
 } from "@mui/material";
-import axios from "axios";
+import api from "../api/axiosInstance";
 import { useEffect, useState, useRef } from "react";
 
 const MFAForm = ({ email, onValidate }) => {
@@ -45,7 +45,7 @@ const MFAForm = ({ email, onValidate }) => {
     
     const joinedOtp = otp.join("");
     try {
-      const res = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/verify_otp`, { email, otp: joinedOtp });
+      const res = await api.post(`${process.env.REACT_APP_API_BASE_URL}/verify_otp`, { email, otp: joinedOtp });
       if (res.data.verified) {
         onValidate();
       }

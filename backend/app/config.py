@@ -20,3 +20,8 @@ class Config:
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY", "")
     JWT_ACCESS_TTL_MIN = int(os.getenv("JWT_ACCESS_TTL_MIN", "15"))
     JWT_REFRESH_TTL_DAYS = int(os.getenv("JWT_REFRESH_TTL_DAYS", "7"))
+    JWT_TOKEN_LOCATION = ["headers", "cookies"]
+    JWT_COOKIE_SECURE = False
+    JWT_COOKIE_SAMESITE = "Strict"
+    JWT_COOKIE_CSRF_PROTECT = True
+    JWT_COOKIE_DOMAIN = os.getenv("JWT_COOKIE_DOMAIN", None)

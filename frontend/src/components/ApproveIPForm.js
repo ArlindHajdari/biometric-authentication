@@ -7,7 +7,7 @@ import {
   Box
 } from "@mui/material";
 import { useSearchParams } from "react-router-dom";
-import axios from "axios";
+import api from "../api/axiosInstance";
 
 const ApproveIPForm = () => {
   const [searchParams] = useSearchParams();
@@ -22,7 +22,7 @@ const ApproveIPForm = () => {
       return;
     }
     
-    axios.post(`${process.env.REACT_APP_API_BASE_URL}/approve-ip`, { token })
+    api.post(`${process.env.REACT_APP_API_BASE_URL}/approve-ip`, { token })
       .then(res => {
         setStatus("success");
         setMessage(res.data.message || "IP address trusted successfully.");

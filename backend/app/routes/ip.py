@@ -3,7 +3,6 @@ from app.db import SessionLocal
 from app.models import IPTrustRequest
 from app.utils.logger import setup_logger
 from datetime import datetime
-from app.config import Config
 from app.services.ip_service import send_ip_trust_approval_email
 
 ip_bp = Blueprint('ip', __name__)

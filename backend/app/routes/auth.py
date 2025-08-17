@@ -7,7 +7,9 @@ from app.services.ip_service import is_threat_ip
 from app.utils.hash_password import verify_password
 from app.utils.logger import setup_logger
 from app.services.model_service import predict_user_authenticity, store_metrics_for_training, compute_fitness
-from flask_jwt_extended import jwt_required
+from flask_jwt_extended import (jwt_required, set_refresh_cookies)
+from app.security.jwt_helpers import generate_tokens
+from app.config import Config
 
 auth_bp = Blueprint('auth', __name__)
 logger = setup_logger()
@@ -96,8 +98,18 @@ def login():
         send_otp(email)
         
         logger.info(f"OTP sent to {email}")
-        return jsonify({"message": "OTP sent"})
+        
+        access_token, refresh_token = generate_tokens(email)
 
+        resp = jsonify({
+            "access_token": access_token,
+            "token_type": "Bearer",
+            "expires_in": Config.JWT_ACCESS_TTL_MIN * 60
+        })
+        
+        set_refresh_cookies(resp, refresh_token)
+        
+        return resp
     except Exception as e:
         logger.exception(f"Login error with exception: {str(e)}")
         return jsonify({"error": "Login failed"}), 500

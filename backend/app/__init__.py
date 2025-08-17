@@ -11,33 +11,30 @@ from flask_jwt_extended import JWTManager
 
 def create_app():
     app = Flask(__name__)
-    app.config["JWT_SECRET_KEY"] = Config.JWT_SECRET_KEY
+    app.config.from_object(Config)
+    
     Swagger(app)
+    
     CORS(
         app, 
         resources={r"/api/*": {"origins": "http://localhost:3000"}},
-        allow_headers=["Content-Type", "Authorization"],
-        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        allow_headers=["Content-Type", "Authorization", "X-Forwarded-For","X-CSRF-TOKEN"],
+        methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        supports_credentials=True
     )
+    
     logger = setup_logger()
     
     jwt = JWTManager(app)
 
     @jwt.unauthorized_loader
-    def missing_token_callback(reason):
-        return {"msg": f"Missing or invalid token: {reason}"}, 401
-
-    @jwt.expired_token_loader
-    def expired_token_callback(jwt_header, jwt_payload):
-        return {"msg": "Token has expired"}, 401
-
+    def _unauth(reason): return ({"msg": f"Missing/invalid token: {reason}"}, 401)
+    
     @jwt.invalid_token_loader
-    def invalid_token_callback(reason):
-        return {"msg": f"Invalid token: {reason}"}, 422
-
-    @jwt.revoked_token_loader
-    def revoked_token_callback(jwt_header, jwt_payload):
-        return {"msg": "Token has been revoked"}, 401
+    def _invalid(reason): return ({"msg": f"Invalid token: {reason}"}, 422)
+    
+    @jwt.expired_token_loader
+    def _expired(h, p): return ({"msg": "Token expired"}, 401)
 
     # Register blueprints
     from app.routes.auth import auth_bp
