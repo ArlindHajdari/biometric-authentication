@@ -2,6 +2,7 @@ import os
 
 class Config:
     FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:3000")
+    AUTHENTICATION_THRESHOLD = int(os.getenv("AUTHENTICATION_THRESHOLD", 95))
     MODEL_PATH = "models"
     REDIS_HOST = "redis"
     REDIS_PORT = 6379

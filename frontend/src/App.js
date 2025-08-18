@@ -22,11 +22,11 @@ import {
 const PhaseFlow = ({
   phase,
   email,
+  setPhase,
   onLogout,
   onLoginSuccess,
   onOTPSuccess
 }) => {
-
   const suspiciousLimitMs = parseInt(process.env.REACT_APP_SUSPICIOUS_ACTIVITY_SECONDS || "10", 10);
   const [authenticated, setAuthentication] = useState(true);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
@@ -40,6 +40,15 @@ const PhaseFlow = ({
     }
   };
 
+  const sendOtp = async (email) => {
+    try {
+      await api.post(`/otp/send`, { email });
+      console.log("OTP sent to", email);
+    } catch (err) {
+      console.error("Failed to send OTP", err);
+    }
+  };
+
   const startLogoutCountdown = () => {
     setLogoutCountdown(suspiciousLimitMs);
     countdownSusRef.current = setInterval(() => {
@@ -47,7 +56,10 @@ const PhaseFlow = ({
         if (prev === 1) {
           clearInterval(countdownSusRef.current);
           setShowLogoutDialog(false);
-          onLogout();
+          //onLogout();
+          setPhase("otp");
+          localStorage.removeItem("logout_pending");
+          sendOtp(email);
           return 0;
         }
         return prev - 1;
@@ -88,7 +100,7 @@ const PhaseFlow = ({
         <DialogTitle>Session Security Warning</DialogTitle>
         <DialogContent>
           <Typography>
-            Low confidence detected. Logging out in  <strong>{logoutCountdown}</strong> second{logoutCountdown !== 1 ? "s" : ""}.
+            Low confidence detected. Stepping back to MFA in  <strong>{logoutCountdown}</strong> second{logoutCountdown !== 1 ? "s" : ""}.
           </Typography>
         </DialogContent>
       </Dialog>
