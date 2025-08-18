@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify
-from app.services.otp_service import verify_otp
+from app.services.otp_service import verify_otp, send_otp
 from app.utils.logger import setup_logger
 from app.services.ip_service import register_or_increment_ip
 from flask_jwt_extended import jwt_required
@@ -79,3 +79,70 @@ def verification():
     except Exception as e:
         logger.exception("Otp verification error", exc_info=e)
         return jsonify({"error": "OTP verification failed"}), 500
+      
+@otp_bp.route("/otp/send", methods=["POST"])
+@jwt_required()
+def otp_delivery():
+    """
+    Send OTP to user email
+    ---
+    tags:
+      - OTP
+    parameters:
+      - in: body
+        name: body
+        required: true
+        schema:
+          type: object
+          properties:
+            email:
+              type: string
+              example: alice@example.com
+            otp:
+              type: string
+              example: "123456"
+    responses:
+      200:
+        description: OTP verification result
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                verified:
+                  type: boolean
+      400:
+        description: Missing details
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+      500:
+        description: OTP verification failed
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                error:
+                  type: string
+    """
+    try:
+        data = request.get_json()
+        email = data.get("email")
+        
+        logger.info(f"[OTP-SEND] Attempt to send OTP for {email}")
+
+        if not email:
+            logger.warning("[OTP-SEND] Missing email")
+            return jsonify({"error": "Missing details"}), 400
+
+        send_otp(email)
+        
+        return jsonify({"verified": True, "message": "OTP sent successfully"})
+    except Exception as e:
+        logger.exception("[OTP-SEND] error", exc_info=e)
+        return jsonify({"error": "OTP delivery failed"}), 500

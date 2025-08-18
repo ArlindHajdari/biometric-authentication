@@ -220,7 +220,7 @@ def authenticate():
         ip_score = evaluate_ip_trust(email, ip)
         fitness = round(compute_fitness(confidence, ip_score), 4)
         
-        authenticated = bool(fitness >= 0.5)
+        authenticated = bool(fitness >= Config.AUTHENTICATION_THRESHOLD)
         
         logger.info(f"Fitness details for {email}: Confidence => {confidence}, IP Score => {ip_score}, Fitness => {fitness}")
         
