@@ -83,6 +83,11 @@ This AI-driven approach enables adaptive, user-specific, and privacy-preserving 
 - **OTP Verification:** Endpoint to verify OTP and register/increment IP trust on success.
 - **Threat IP Detection:** During login, the backend checks the user's IP address against a threat intelligence service. If the IP is flagged as a known threat or abuser, login is immediately denied with a clear error message and logged as a security event. This adds an extra layer of protection against malicious login attempts from suspicious sources.
 
+#### JWT Authentication & Adaptive Multi-Factor Step-Back
+
+- **JWT Authentication:** Upon successful login and OTP verification, the backend issues JWT access and refresh tokens for secure, stateless session management. All protected endpoints require a valid JWT, ensuring only authenticated users can access sensitive resources.
+- **Adaptive Multi-Factor Step-Back:** During behavioral authentication (`/authenticate`), if the computed confidence score (fitness) is below the required threshold, the system automatically triggers a step-back to multi-factor authentication (MFA). The user is prompted to re-verify their identity via OTP, adding an extra layer of security when behavioral signals are weak or ambiguous. This adaptive approach balances usability and security, ensuring robust protection without unnecessary friction for genuine users.
+
 #### IP Trust Management
 
 - **IP Tracking:** Each login attempt records the user's IP and increments a counter.
