@@ -203,12 +203,11 @@ def authenticate():
             logger.info(f"[AUTHENTICATE] User not found: {email}")
             return jsonify({"error": "User not found"}), 404
         
-        store_metrics_for_training(email, metrics)
-        
         if user.mode == "train":
             user.successful_logins += 1
             db.commit()
             logger.info(f"[TRAIN MODE] Gathering metrics for {email}")
+            store_metrics_for_training(email, metrics)
             return jsonify({"authenticated": True, "confidence": 1.0})
         
         logger.info(f"Re-authenticating {email} with new metrics.")
@@ -228,6 +227,7 @@ def authenticate():
             user.successful_logins += 1
             db.commit()
             logger.info(f"[AUTHENTICATED]: User {email} successfully authenticated.")
+            store_metrics_for_training(email, metrics)
         
         return jsonify({
             "authenticated": authenticated,

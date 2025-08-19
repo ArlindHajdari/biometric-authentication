@@ -162,12 +162,12 @@ def predict_user_authenticity(email: str, metrics: dict[str, list[float]]) -> bo
 
 def store_metrics_for_training(email, metrics):
     if not email or not metrics:
-        logger.info(f"Email {email} or Metrics {metrics} are missing, not storing training data.")
+        logger.info(f"[store_metrics_for_training]: Email {email} or Metrics {metrics} are missing, not storing training data.")
         return {"stored": False}
     
     metric_keys = ["hold_time", "flight_time", "mouse_velocity", "click_frequency", "dwell_time", "scroll_distance", "keypress_rate", "cursor_variation"]
     if all((not metrics.get(key)) or (isinstance(metrics.get(key), list) and len(metrics.get(key)) == 0) for key in metric_keys):
-        logger.info(f"All metrics are empty for {email}, not storing training data.")
+        logger.info(f"[store_metrics_for_training]: All metrics are empty for {email}, not storing training data.")
         return {"stored": False}
 
     db = SessionLocal()
@@ -186,7 +186,7 @@ def store_metrics_for_training(email, metrics):
     db.commit()
     db.close()
 
-    logger.info(f"Stored training data for {email}")
+    logger.info(f"[store_metrics_for_training]: Stored training data for {email}")
     return {"stored": True}
 
 def compute_fitness(is_genuine, ip_score):
